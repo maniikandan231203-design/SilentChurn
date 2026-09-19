@@ -17,11 +17,11 @@ export function QuickVisitModal({ isOpen, onClose }: QuickVisitModalProps) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commandText.trim()) return;
 
-    const res = quickLogVisit(commandText);
+    const res = await quickLogVisit(commandText);
     setLastResult({
       success: res.success,
       message: res.message,

@@ -141,7 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ...prev,
           businessName: org.name || prev.businessName,
           currency: (org.currency as any) || prev.currency,
-          phone: org.reply_phone_number || prev.phone,
+          whatsappReplyNumber: org.reply_phone_number || prev.whatsappReplyNumber,
           industryId: org.industry_type ? org.industry_type.toLowerCase() : prev.industryId,
         }));
       }
@@ -166,7 +166,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       // 3. Map Customers from DB
       if (data.customers && data.customers.length > 0) {
-        const mappedCustomers = data.customers.map((c: any) => mapDbCustomerToCustomer(c, config.defaultFrequencyDays));
+        const mappedCustomers = data.customers.map((c: any) => mapDbCustomerToCustomer(c, INDUSTRY_PRESETS.find(i => i.id === config.industryId)?.defaultFrequencyDays || 30));
         setCustomers(mappedCustomers);
       }
 
@@ -230,7 +230,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [config.defaultFrequencyDays]);
+  }, [config.industryId]);
 
   // Initial mount load
   useEffect(() => {
@@ -302,7 +302,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await serverUpdateOrg({
         name: newConfig.businessName,
         currency: newConfig.currency,
-        reply_phone_number: newConfig.phone,
+        reply_phone_number: newConfig.whatsappReplyNumber,
       });
       addToast({
         title: "Settings Saved to Database",
@@ -320,7 +320,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setConfig((prev) => ({
         ...prev,
         industryId,
-        defaultFrequencyDays: matched.defaultFrequencyDays,
       }));
       addToast({
         title: `Industry Switched: ${matched.name}`,
@@ -396,7 +395,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error(visitRes.error || "Failed to record visit");
       }
 
-      const updatedCustomer = mapDbCustomerToCustomer(visitRes.customer, config.defaultFrequencyDays);
+      const updatedCustomer = mapDbCustomerToCustomer(visitRes.customer, INDUSTRY_PRESETS.find(i => i.id === config.industryId)?.defaultFrequencyDays || 30);
       const wasRecovered = updatedCustomer.status === "recovered";
 
       // Push Live Event
@@ -468,7 +467,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw new Error(visitRes.error || "Failed to register checkin in database");
       }
 
-      const updatedCustomer = mapDbCustomerToCustomer(visitRes.customer || dbCustomer, config.defaultFrequencyDays);
+      const updatedCustomer = mapDbCustomerToCustomer(visitRes.customer || dbCustomer, INDUSTRY_PRESETS.find(i => i.id === config.industryId)?.defaultFrequencyDays || 30);
 
       const newEvent: LiveEvent = {
         id: generateId(),
